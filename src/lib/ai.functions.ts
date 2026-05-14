@@ -1,31 +1,37 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+const Tool = z.enum(["email", "meetings", "tasks", "research", "chat"]);
 
 const InputSchema = z.object({
-  tool: z.enum(["email", "meeting", "tasks", "research", "chat"]),
+  tool: Tool,
   prompt: z.string().min(1).max(10000),
   history: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(10000) }))
     .max(40)
     .optional(),
+  save: z.boolean().optional(),
+  title: z.string().max(200).optional(),
 });
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   email:
-    "You are a professional workplace email writer. Generate a clear, concise, and polished email based on the user's brief. Output ONLY the email — include a subject line on the first line as 'Subject: ...', then a blank line, then the body. Use a tone appropriate to the context.",
-  meeting:
-    "You are an expert meeting notes summarizer. Given raw meeting notes or a transcript, produce a structured summary with these sections: 'TL;DR' (2-3 lines), 'Key Discussion Points' (bullets), 'Decisions' (bullets), 'Action Items' (bulleted list with owner and due date if mentioned). Use clean Markdown.",
+    "You are a professional workplace email writer. Generate a clear, concise, and polished email based on the user's brief. Output ONLY the email — include a subject line on the first line as 'Subject: ...', then a blank line, then the body.",
+  meetings:
+    "You are an expert meeting notes summarizer. Given raw meeting notes or a transcript, produce a structured summary in Markdown with these sections: 'TL;DR' (2-3 lines), 'Key Discussion Points' (bullets), 'Decisions' (bullets), 'Action Items' (with owner and due date if mentioned).",
   tasks:
-    "You are an AI task planner. Break the user's goal into a prioritized, actionable plan. Output Markdown with sections: 'Goal', 'Plan' (numbered steps with estimated time), 'Today's Focus' (top 3), and 'Risks/Dependencies'. Be realistic and specific.",
+    "You are an AI task planner. Break the user's goal into a prioritized actionable plan. Output Markdown: 'Goal', 'Plan' (numbered steps with estimated time), 'Today's Focus' (top 3), and 'Risks/Dependencies'.",
   research:
-    "You are an AI research assistant for working professionals. Given a topic or question, produce a structured briefing in Markdown: 'Summary' (3-5 lines), 'Key Concepts' (bullets), 'Considerations & Tradeoffs', 'Recommended Next Steps'. Cite reasoning, but note you cannot browse the live web — flag where the user should verify with current sources.",
+    "You are an AI research assistant for working professionals. Produce a Markdown briefing: 'Summary' (3-5 lines), 'Key Concepts', 'Considerations & Tradeoffs', 'Recommended Next Steps'. Note you cannot browse the live web — flag where the user should verify with current sources.",
   chat:
-    "You are a helpful AI workplace assistant. Be concise, professional, and practical. Use Markdown formatting when helpful.",
+    "You are a helpful AI workplace assistant. Be concise, professional, and practical. Use Markdown when helpful.",
 };
 
 export const generateAi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => InputSchema.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -37,22 +43,12 @@ export const generateAi = createServerFn({ method: "POST" })
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages,
-      }),
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages }),
     });
 
-    if (res.status === 429) {
-      throw new Error("Rate limit reached. Please wait a moment and try again.");
-    }
-    if (res.status === 402) {
-      throw new Error("AI credits exhausted. Please add credits in Workspace settings.");
-    }
+    if (res.status === 429) throw new Error("Rate limit reached. Please wait a moment and try again.");
+    if (res.status === 402) throw new Error("AI credits exhausted. Please add credits in Workspace settings.");
     if (!res.ok) {
       const t = await res.text();
       console.error("AI gateway error", res.status, t);
@@ -61,5 +57,100 @@ export const generateAi = createServerFn({ method: "POST" })
 
     const json = await res.json();
     const content: string = json.choices?.[0]?.message?.content ?? "";
-    return { content };
+
+    let savedId: string | null = null;
+    if (data.save && content) {
+      const { data: row, error } = await context.supabase
+        .from("generations")
+        .insert({
+          user_id: context.userId,
+          tool: data.tool,
+          title: data.title ?? data.prompt.slice(0, 80),
+          input: data.prompt,
+          output: content,
+        })
+        .select("id")
+        .single();
+      if (error) console.error("save generation error", error);
+      else savedId = row.id;
+    }
+
+    return { content, savedId };
+  });
+
+export const listGenerations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ tool: Tool.optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    let q = context.supabase
+      .from("generations")
+      .select("id, tool, title, input, output, created_at, updated_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (data.tool) q = q.eq("tool", data.tool);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    return { generations: rows ?? [] };
+  });
+
+export const updateGeneration = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      id: z.string().uuid(),
+      output: z.string().max(50000).optional(),
+      title: z.string().max(200).optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { id, ...patch } = data;
+    const { error } = await context.supabase
+      .from("generations")
+      .update(patch)
+      .eq("id", id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteGeneration = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("generations")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getAccount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [profile, sub] = await Promise.all([
+      context.supabase.from("profiles").select("*").eq("id", context.userId).maybeSingle(),
+      context.supabase.from("subscriptions").select("*").eq("user_id", context.userId).maybeSingle(),
+    ]);
+    return { profile: profile.data, subscription: sub.data };
+  });
+
+export const updateSubscription = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      plan: z.enum(["starter", "pro", "business"]),
+      price_zar: z.number().min(80).max(10000),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("subscriptions")
+      .update({ plan: data.plan, price_zar: data.price_zar, status: "active" })
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });

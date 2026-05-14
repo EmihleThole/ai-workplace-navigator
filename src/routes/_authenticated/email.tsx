@@ -2,18 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { AiTool } from "@/components/AiTool";
 
-export const Route = createFileRoute("/email")({
-  head: () => ({
-    meta: [
-      { title: "Smart Email Generator — Workplace AI" },
-      { name: "description", content: "Generate professional emails from a short brief." },
-    ],
-  }),
-  component: EmailPage,
-});
-
-function EmailPage() {
-  return (
+export const Route = createFileRoute("/_authenticated/email")({
+  head: () => ({ meta: [{ title: "Smart Email Generator — Workplace AI" }] }),
+  component: () => (
     <div>
       <PageHeader eyebrow="Communication" title="Smart Email Generator" description="Describe what you need to say. We'll draft a polished email." />
       <AiTool
@@ -30,5 +21,5 @@ function EmailPage() {
         ]}
       />
     </div>
-  );
-}
+  ),
+});
