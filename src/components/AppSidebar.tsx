@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, Mail, FileText, ListChecks, BookOpen, MessageSquare, LayoutDashboard, History, CreditCard } from "lucide-react";
+import { Sparkles, Mail, FileText, ListChecks, BookOpen, MessageSquare, LayoutDashboard, History, CreditCard, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +25,7 @@ const tools = [
 const account = [
   { title: "History", url: "/history", icon: History },
   { title: "Account & Plan", url: "/account", icon: CreditCard },
+  { title: "Settings", url: "/settings", icon: Settings },
 ] as const;
 
 export function AppSidebar() {

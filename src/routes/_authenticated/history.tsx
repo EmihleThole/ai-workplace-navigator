@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "History — Workplace AI" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   component: HistoryPage,
 });
 
@@ -24,7 +25,9 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 type Tool = "email" | "meetings" | "tasks" | "research" | "chat";
 
 function HistoryPage() {
+  const { q: searchQuery } = Route.useSearch();
   const [filter, setFilter] = useState<"all" | Tool>("all");
+  const [search, setSearch] = useState(searchQuery ?? "");
   const fetchHistory = useServerFn(listGenerations);
   const update = useServerFn(updateGeneration);
   const remove = useServerFn(deleteGeneration);
@@ -39,7 +42,16 @@ function HistoryPage() {
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const items = q.data?.generations ?? [];
+  // Sync search box with URL ?q= when it changes (e.g. from header search)
+  useEffect(() => { setSearch(searchQuery ?? ""); }, [searchQuery]);
+
+  const allItems = q.data?.generations ?? [];
+  const items = search.trim()
+    ? allItems.filter((g) => {
+        const s = search.toLowerCase();
+        return (g.title ?? "").toLowerCase().includes(s) || g.input.toLowerCase().includes(s) || g.output.toLowerCase().includes(s);
+      })
+    : allItems;
   const active = items.find((g) => g.id === activeId) ?? items[0];
 
   const startEdit = (id: string, output: string) => {
