@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "History — Workplace AI" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   component: HistoryPage,
 });
 
@@ -24,7 +25,9 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 type Tool = "email" | "meetings" | "tasks" | "research" | "chat";
 
 function HistoryPage() {
+  const { q: searchQuery } = Route.useSearch();
   const [filter, setFilter] = useState<"all" | Tool>("all");
+  const [search, setSearch] = useState(searchQuery ?? "");
   const fetchHistory = useServerFn(listGenerations);
   const update = useServerFn(updateGeneration);
   const remove = useServerFn(deleteGeneration);
@@ -39,7 +42,16 @@ function HistoryPage() {
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const items = q.data?.generations ?? [];
+  // Sync search box with URL ?q= when it changes (e.g. from header search)
+  useEffect(() => { setSearch(searchQuery ?? ""); }, [searchQuery]);
+
+  const allItems = q.data?.generations ?? [];
+  const items = search.trim()
+    ? allItems.filter((g) => {
+        const s = search.toLowerCase();
+        return (g.title ?? "").toLowerCase().includes(s) || g.input.toLowerCase().includes(s) || g.output.toLowerCase().includes(s);
+      })
+    : allItems;
   const active = items.find((g) => g.id === activeId) ?? items[0];
 
   const startEdit = (id: string, output: string) => {
@@ -77,16 +89,24 @@ function HistoryPage() {
     <div>
       <PageHeader eyebrow="Saved" title="Your AI history" description="Every generation is saved here. Click any item to read or edit it." />
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="mb-6">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="meetings">Meetings</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="research">Research</TabsTrigger>
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="meetings">Meetings</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="research">Research</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search saved generations…"
+          className="h-9 w-full max-w-xs rounded-md border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+        />
+      </div>
 
       {q.isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
