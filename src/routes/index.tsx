@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Mail, FileText, ListChecks, BookOpen, MessageSquare, Sparkles, Check, ShieldCheck, ArrowRight } from "lucide-react";
+import { Mail, FileText, ListChecks, BookOpen, MessageSquare, Sparkles, Check, ShieldCheck, ArrowRight, FileUser, FilePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImg from "@/assets/hero.jpg";
 import teamImg from "@/assets/team.jpg";
