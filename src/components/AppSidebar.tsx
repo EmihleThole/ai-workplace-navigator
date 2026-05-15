@@ -41,7 +41,6 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold">Workplace AI</span>
-            <span className="text-[11px] text-muted-foreground">Productivity Suite</span>
           </div>
         </Link>
       </SidebarHeader>
