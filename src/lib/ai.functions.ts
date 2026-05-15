@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const Tool = z.enum(["email", "meetings", "tasks", "research", "chat"]);
+const Tool = z.enum(["email", "meetings", "tasks", "research", "chat", "resume", "cover_letter"]);
 
 const InputSchema = z.object({
   tool: Tool,
