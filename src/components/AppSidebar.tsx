@@ -19,6 +19,8 @@ const tools = [
   { title: "Meeting Summarizer", url: "/meetings", icon: FileText },
   { title: "Task Planner", url: "/tasks", icon: ListChecks },
   { title: "Research Assistant", url: "/research", icon: BookOpen },
+  { title: "Resume Builder", url: "/resume", icon: FileUser },
+  { title: "Cover Letter", url: "/cover-letter", icon: FilePen },
   { title: "AI Chat", url: "/chat", icon: MessageSquare },
 ] as const;
 
