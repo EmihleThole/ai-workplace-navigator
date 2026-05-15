@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Mail, FileText, ListChecks, BookOpen, MessageSquare, ArrowRight, Sparkles, Clock } from "lucide-react";
+import { Mail, FileText, ListChecks, BookOpen, MessageSquare, ArrowRight, Sparkles, Clock, FileUser, FilePen } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAccount, listGenerations } from "@/lib/ai.functions";
