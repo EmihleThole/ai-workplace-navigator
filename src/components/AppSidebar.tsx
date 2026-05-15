@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, Mail, FileText, ListChecks, BookOpen, MessageSquare, LayoutDashboard, History, CreditCard, Settings } from "lucide-react";
+import { Sparkles, Mail, FileText, ListChecks, BookOpen, MessageSquare, LayoutDashboard, History, CreditCard, Settings, FileUser, FilePen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
