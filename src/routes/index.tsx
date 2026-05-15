@@ -26,7 +26,7 @@ const tools = [
 ];
 
 const plans = [
-  { name: "Starter", price: 80, blurb: "Solo professionals getting started.", features: ["All 5 AI tools", "Saved history", "Email support"], cta: "Start free trial", highlight: false },
+  { name: "Starter", price: 80, blurb: "Solo professionals getting started.", features: ["All 7 AI tools", "Saved history", "Email support"], cta: "Start free trial", highlight: false },
   { name: "Pro", price: 180, blurb: "Power users who ship more every day.", features: ["Everything in Starter", "Priority AI responses", "Longer context windows", "Priority support"], cta: "Start free trial", highlight: true },
   { name: "Business", price: 380, blurb: "Small teams collaborating at scale.", features: ["Everything in Pro", "Team workspaces (coming soon)", "Audit logs", "Dedicated success manager"], cta: "Start free trial", highlight: false },
 ];
