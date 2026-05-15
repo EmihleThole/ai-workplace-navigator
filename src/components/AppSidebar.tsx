@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles, Mail, FileText, ListChecks, BookOpen, MessageSquare, LayoutDashboard, History, CreditCard, Settings } from "lucide-react";
+import { Sparkles, Mail, FileText, ListChecks, BookOpen, MessageSquare, LayoutDashboard, History, CreditCard, Settings, FileUser, FilePen } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +19,8 @@ const tools = [
   { title: "Meeting Summarizer", url: "/meetings", icon: FileText },
   { title: "Task Planner", url: "/tasks", icon: ListChecks },
   { title: "Research Assistant", url: "/research", icon: BookOpen },
+  { title: "Resume Builder", url: "/resume", icon: FileUser },
+  { title: "Cover Letter", url: "/cover-letter", icon: FilePen },
   { title: "AI Chat", url: "/chat", icon: MessageSquare },
 ] as const;
 
@@ -39,7 +41,6 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold">Workplace AI</span>
-            <span className="text-[11px] text-muted-foreground">Productivity Suite</span>
           </div>
         </Link>
       </SidebarHeader>

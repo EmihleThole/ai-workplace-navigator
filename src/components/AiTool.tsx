@@ -7,7 +7,7 @@ import { Loader2, Sparkles, Copy, RotateCcw, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import { generateAi, updateGeneration } from "@/lib/ai.functions";
 
-type Tool = "email" | "meetings" | "tasks" | "research";
+type Tool = "email" | "meetings" | "tasks" | "research" | "resume" | "cover_letter";
 
 interface AiToolProps {
   tool: Tool;

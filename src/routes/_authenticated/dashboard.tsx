@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Mail, FileText, ListChecks, BookOpen, MessageSquare, ArrowRight, Sparkles, Clock } from "lucide-react";
+import { Mail, FileText, ListChecks, BookOpen, MessageSquare, ArrowRight, Sparkles, Clock, FileUser, FilePen } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAccount, listGenerations } from "@/lib/ai.functions";
@@ -17,6 +17,8 @@ const tools = [
   { to: "/meetings", icon: FileText, title: "Meeting Notes Summarizer", desc: "Turn raw notes into TL;DRs and action items." },
   { to: "/tasks", icon: ListChecks, title: "AI Task Planner", desc: "Break goals into prioritized plans." },
   { to: "/research", icon: BookOpen, title: "AI Research Assistant", desc: "Get structured briefings on any topic." },
+  { to: "/resume", icon: FileUser, title: "AI Resume Builder", desc: "Craft an ATS-friendly resume tailored to any role." },
+  { to: "/cover-letter", icon: FilePen, title: "AI Cover Letter Generator", desc: "Generate tailored cover letters in seconds." },
   { to: "/chat", icon: MessageSquare, title: "AI Chatbot", desc: "Conversational assistant for everyday questions." },
 ] as const;
 
