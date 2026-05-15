@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedResumeRouteImport } from './routes/_authenticated/resume'
 import { Route as AuthenticatedResearchRouteImport } from './routes/_authenticated/research'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
@@ -50,6 +51,11 @@ const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedResumeRoute = AuthenticatedResumeRouteImport.update({
+  id: '/resume',
+  path: '/resume',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedResearchRoute = AuthenticatedResearchRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/history': typeof AuthenticatedHistoryRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/research': typeof AuthenticatedResearchRoute
+  '/resume': typeof AuthenticatedResumeRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
 }
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/history': typeof AuthenticatedHistoryRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/research': typeof AuthenticatedResearchRoute
+  '/resume': typeof AuthenticatedResumeRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
 }
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/research': typeof AuthenticatedResearchRoute
+  '/_authenticated/resume': typeof AuthenticatedResumeRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
 }
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/meetings'
     | '/research'
+    | '/resume'
     | '/settings'
     | '/tasks'
   fileRoutesByTo: FileRoutesByTo
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/history'
     | '/meetings'
     | '/research'
+    | '/resume'
     | '/settings'
     | '/tasks'
   id:
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/history'
     | '/_authenticated/meetings'
     | '/_authenticated/research'
+    | '/_authenticated/resume'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
   fileRoutesById: FileRoutesById
@@ -227,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/resume': {
+      id: '/_authenticated/resume'
+      path: '/resume'
+      fullPath: '/resume'
+      preLoaderRoute: typeof AuthenticatedResumeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/research': {
@@ -289,6 +308,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedResearchRoute: typeof AuthenticatedResearchRoute
+  AuthenticatedResumeRoute: typeof AuthenticatedResumeRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
 }
@@ -301,6 +321,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedResearchRoute: AuthenticatedResearchRoute,
+  AuthenticatedResumeRoute: AuthenticatedResumeRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
 }
@@ -318,3 +339,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
