@@ -20,6 +20,8 @@ const tools = [
   { icon: FileText, title: "Meeting Notes", desc: "Turn raw notes into action items." },
   { icon: ListChecks, title: "Task Planner", desc: "Break goals into clear plans." },
   { icon: BookOpen, title: "Research", desc: "Structured briefings on any topic." },
+  { icon: FileUser, title: "Resume Builder", desc: "ATS-friendly resumes tailored to any role." },
+  { icon: FilePen, title: "Cover Letters", desc: "Tailored cover letters in seconds." },
   { icon: MessageSquare, title: "AI Chat", desc: "Conversational workplace help." },
 ];
 
